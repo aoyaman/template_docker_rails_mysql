@@ -1,0 +1,40 @@
+version: '3'
+services:
+  db:
+    image: mysql:8.0
+    command: --innodb-use-native-aio=0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      TZ: "Asia/Tokyo"
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data:/var/lib/mysql
+  app:
+    build: 
+      context: app
+      dockerfile: Dockerfile
+    command: sh launch.sh
+    volumes:
+      - ./app:/app
+      - public-data:/app/public
+      - tmp-data:/app/tmp
+      - log-data:/app/log
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - 80:80
+    depends_on:
+      - app
+    volumes:
+      - public-data:/app/public
+      - tmp-data:/app/tmp
+volumes:
+  public-data:
+  tmp-data:
+  log-data:
